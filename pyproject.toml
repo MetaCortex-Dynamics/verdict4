@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "verdict4"
+version = "0.1.0"
+description = "Four-value evaluation for agentic AI loops. Replace pass/fail with NO/YES/MAYBE/IFF."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    { name = "MetaCortex Dynamics", email = "Contact@metacortexdynamics.com" },
+]
+keywords = ["agentic", "ai", "evaluation", "loop", "quaternary", "verdict"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://github.com/MetaCortex-Dynamics/verdict4"
+Documentation = "https://metacortexdynamics.substack.com/p/your-loop-has-two-states-it-needs"
+Repository = "https://github.com/MetaCortex-Dynamics/verdict4"
+Issues = "https://github.com/MetaCortex-Dynamics/verdict4/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["quaternary"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
