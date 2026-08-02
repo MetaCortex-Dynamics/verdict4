@@ -12,8 +12,10 @@ Read the full explanation: [Your Loop Has Two States. It Needs Four.](https://me
 
 ## Install
 
+Install directly from GitHub:
+
 ```bash
-pip install verdict4
+pip install git+https://github.com/MetaCortex-Dynamics/verdict4.git@v0.1.0
 ```
 
 Or from source:
@@ -23,6 +25,8 @@ git clone https://github.com/MetaCortex-Dynamics/verdict4.git
 cd verdict4
 pip install -e .
 ```
+
+> **Note:** `verdict4` is not yet published to PyPI, so `pip install verdict4` does not work yet. Use the GitHub install above. A PyPI release is planned.
 
 ## Quick start
 
