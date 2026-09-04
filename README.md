@@ -28,7 +28,13 @@ cd verdict4
 pip install -e .
 ```
 
-> **Note:** `verdict4` is not yet published to PyPI, so `pip install verdict4` does not work yet. Use the GitHub install above. A PyPI release is planned.
+After the GitHub release has published the package to PyPI, install the pinned release with:
+
+```bash
+pip install verdict4==0.2.0
+```
+
+Until that release workflow completes, use the GitHub install above.
 
 ## Quick start
 

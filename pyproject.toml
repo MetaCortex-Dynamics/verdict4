@@ -29,6 +29,7 @@ Homepage = "https://github.com/MetaCortex-Dynamics/verdict4"
 Documentation = "https://metacortexdynamics.substack.com/p/your-loop-has-two-states-it-needs"
 Repository = "https://github.com/MetaCortex-Dynamics/verdict4"
 Issues = "https://github.com/MetaCortex-Dynamics/verdict4/issues"
+Paper = "https://doi.org/10.5281/zenodo.22309225"
 
 [tool.hatch.build.targets.wheel]
 packages = ["quaternary"]
