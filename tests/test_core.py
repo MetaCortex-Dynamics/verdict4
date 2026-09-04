@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from quaternary import CheckResult, LoopOutcome, Verdict, iff, maybe, no, run, yes
-
+from quaternary import CheckResult, Verdict, iff, maybe, no, run, yes
 
 # --- Core type tests ---
 
@@ -156,7 +155,11 @@ class TestRunner:
         outcome = run(
             task="never passes",
             generate=lambda t, *, exclusions: "bad",
-            check=lambda o: no(f"failure #{len(exclusions) + 1}" if (exclusions := []) or True else no("")),
+            check=lambda o: no(
+                f"failure #{len(exclusions) + 1}"
+                if (exclusions := []) or True
+                else no("")
+            ),
             max_rounds=3,
         )
         assert outcome.status == "exhausted"

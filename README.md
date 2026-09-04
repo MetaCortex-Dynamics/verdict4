@@ -10,12 +10,14 @@ This package provides a four-value `Verdict` enum, a structured `CheckResult`, a
 
 Read the full explanation: [Your Loop Has Two States. It Needs Four.](https://metacortexdynamics.substack.com/p/your-loop-has-two-states-it-needs)
 
+The finite-rank controller is specified in [Quaternary Iteration Control for Looped Transformers](https://doi.org/10.5281/zenodo.22309225). The controller is included in this release; looped-transformer substrate integration is in preparation.
+
 ## Install
 
 Install directly from GitHub:
 
 ```bash
-pip install git+https://github.com/MetaCortex-Dynamics/verdict4.git@v0.1.0
+pip install git+https://github.com/MetaCortex-Dynamics/verdict4.git@v0.2.0
 ```
 
 Or from source:
@@ -83,7 +85,7 @@ from quaternary import Verdict, CheckResult, no, yes, maybe, iff
 **`CheckResult`** — frozen dataclass:
 - `verdict: Verdict`
 - `reason: str | None` — required for `NO`
-- `needed: str | None` — required for `MAYBE`
+- `needed: str | EvidenceNeed | ComputeNeed | None` — required for `MAYBE`
 - `dependency: str | None` — required for `IFF`
 - `meta: dict[str, Any]` — optional domain metadata
 
@@ -117,6 +119,43 @@ Optional:
 - `rounds`: iterations used
 - `held_reason` / `blocked_by`: why the loop stopped
 - `contradiction`: flagged contradictory exclusion pairs (if any)
+
+### Finite-rank controller
+
+Version 0.2.0 adds a substrate-free controller for repeated computation. It
+preserves the v0.1.0 runner API while adding typed `MAYBE` needs, finite
+one-use alphabets, dependency bindings, logical leases, and replayable
+accounting receipts.
+
+```python
+from quaternary import (
+    ComputeNeed,
+    QICTConfig,
+    QICTController,
+    maybe,
+    rank,
+    yes,
+)
+
+config = QICTConfig(compute_alphabet={"next_1", "next_2"})
+controller = QICTController(config)
+initial_rank = rank(config, controller.state)
+
+controller.process(maybe(ComputeNeed("next_1")))
+controller.process(maybe(ComputeNeed("next_2")))
+controller.process(yes())
+
+assert controller.state.evaluation_count <= initial_rank + 1
+assert controller.audit().valid
+```
+
+Every evaluation that continues consumes exactly one finite opportunity: a
+new exclusion, an evidence request, another computation, or a dependency.
+Therefore the controller terminates in at most `initial_rank + 1`
+evaluations, without assuming that the evaluator is sound.
+
+Receipts contain controller accounting state and transition data. Candidate
+activations are excluded from the receipt state by type.
 
 ## Examples
 

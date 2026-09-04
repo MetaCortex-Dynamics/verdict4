@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "verdict4"
-version = "0.1.0"
+version = "0.2.0"
 description = "Four-value evaluation for agentic AI loops. Replace pass/fail with NO/YES/MAYBE/IFF."
 readme = "README.md"
 license = "MIT"

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import Any
+from typing import Any, TypeAlias
 
 
 class Verdict(IntEnum):
@@ -31,6 +31,31 @@ class Verdict(IntEnum):
 
 
 @dataclass(frozen=True, slots=True)
+class EvidenceNeed:
+    """A canonical request for one finite piece of absent evidence."""
+
+    evidence: str
+
+    def __post_init__(self) -> None:
+        if not self.evidence:
+            raise ValueError("EvidenceNeed requires a non-empty canonical identifier.")
+
+
+@dataclass(frozen=True, slots=True)
+class ComputeNeed:
+    """A canonical request for one further application of the loop body."""
+
+    step: str
+
+    def __post_init__(self) -> None:
+        if not self.step:
+            raise ValueError("ComputeNeed requires a non-empty canonical identifier.")
+
+
+Needed: TypeAlias = EvidenceNeed | ComputeNeed
+
+
+@dataclass(frozen=True, slots=True)
 class CheckResult:
     """Structured evaluation carrying its own operational consequence.
 
@@ -42,13 +67,15 @@ class CheckResult:
 
     verdict: Verdict
     reason: str | None = None
-    needed: str | None = None
+    needed: str | Needed | None = None
     dependency: str | None = None
     meta: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.verdict == Verdict.NO and self.reason is None:
-            raise ValueError("NO verdict requires a reason. Failure must not be anonymous.")
+            raise ValueError(
+                "NO verdict requires a reason. Failure must not be anonymous."
+            )
         if self.verdict == Verdict.MAYBE and self.needed is None:
             raise ValueError("MAYBE verdict requires needed evidence.")
         if self.verdict == Verdict.IFF and self.dependency is None:
@@ -56,6 +83,7 @@ class CheckResult:
 
 
 # --- Constructors (convenience) ---
+
 
 def no(reason: str, **meta: Any) -> CheckResult:
     """Reject with named reason."""
@@ -67,8 +95,12 @@ def yes(**meta: Any) -> CheckResult:
     return CheckResult(verdict=Verdict.YES, meta=meta)
 
 
-def maybe(needed: str, **meta: Any) -> CheckResult:
-    """Hold — evidence missing."""
+def maybe(needed: str | Needed, **meta: Any) -> CheckResult:
+    """Hold because typed evidence or computation is needed.
+
+    Strings remain accepted for compatibility with the v0.1.0 runner. The
+    finite-rank controller requires EvidenceNeed or ComputeNeed.
+    """
     return CheckResult(verdict=Verdict.MAYBE, needed=needed, meta=meta)
 
 

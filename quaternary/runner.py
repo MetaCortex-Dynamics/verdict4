@@ -17,8 +17,9 @@ The runner handles the four branches.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from .core import CheckResult, Verdict
 
@@ -73,11 +74,20 @@ def _detect_contradictions(exclusions: list[str]) -> list[tuple[str, str]]:
         for b in exclusions[i + 1 :]:
             a_lower, b_lower = a.lower(), b.lower()
             for prefix in negation_prefixes:
-                if a_lower.startswith(prefix) and a_lower[len(prefix) :].strip() == b_lower:
-                    contradictions.append((a, b))
-                elif b_lower.startswith(prefix) and b_lower[len(prefix) :].strip() == a_lower:
+                if (
+                    a_lower.startswith(prefix)
+                    and a_lower[len(prefix) :].strip() == b_lower
+                    or b_lower.startswith(prefix)
+                    and b_lower[len(prefix) :].strip() == a_lower
+                ):
                     contradictions.append((a, b))
     return contradictions
+
+
+def _needed_text(needed: object) -> str | None:
+    """Return legacy string needs without interpreting typed controller needs."""
+
+    return needed if isinstance(needed, str) else None
 
 
 def run(
@@ -122,20 +132,33 @@ def run(
 
         # --- MAYBE --- (T6: bounded recheck)
         elif result.verdict == Verdict.MAYBE:
-            if gather is None or recheck is None:
-                # No gather/recheck supplied — hold immediately
+            needed = _needed_text(result.needed)
+            if needed is None:
+                reason = "typed MAYBE need requires QICTController"
                 if on_hold:
-                    on_hold(output, result.needed or "unknown")
+                    on_hold(output, reason)
                 return LoopOutcome(
                     status="held",
                     output=output,
                     exclusions=exclusions,
-                    held_reason=result.needed,
+                    held_reason=reason,
+                    rounds=round_num,
+                    contradiction=_detect_contradictions(exclusions) or None,
+                )
+            if gather is None or recheck is None:
+                # No gather/recheck supplied — hold immediately
+                if on_hold:
+                    on_hold(output, needed)
+                return LoopOutcome(
+                    status="held",
+                    output=output,
+                    exclusions=exclusions,
+                    held_reason=needed,
                     rounds=round_num,
                     contradiction=_detect_contradictions(exclusions) or None,
                 )
 
-            evidence = gather(result.needed)  # type: ignore[arg-type]
+            evidence = gather(needed)
             result2 = recheck(output, evidence)
 
             if result2.verdict == Verdict.YES:
@@ -153,12 +176,17 @@ def run(
             else:
                 # Second MAYBE or IFF after gather → hold, do not loop (T6)
                 if on_hold:
-                    on_hold(output, result2.needed or result2.dependency or "unresolvable")
+                    on_hold(
+                        output,
+                        _needed_text(result2.needed)
+                        or result2.dependency
+                        or "unresolvable",
+                    )
                 return LoopOutcome(
                     status="held",
                     output=output,
                     exclusions=exclusions,
-                    held_reason=result2.needed or result2.dependency,
+                    held_reason=_needed_text(result2.needed) or result2.dependency,
                     rounds=round_num,
                     contradiction=_detect_contradictions(exclusions) or None,
                 )
@@ -168,39 +196,37 @@ def run(
             dep = result.dependency
             assert dep is not None  # enforced by CheckResult
 
-            if is_resolved is not None and is_resolved(dep):
+            if is_resolved is not None and is_resolved(dep) and recheck is not None:
                 # Dependency resolved — recheck output
-                if recheck is not None:
-                    result3 = recheck(output)
-                    if result3.verdict == Verdict.YES:
-                        return LoopOutcome(
-                            status="accepted",
-                            output=output,
-                            exclusions=exclusions,
-                            rounds=round_num,
-                            contradiction=_detect_contradictions(exclusions) or None,
-                        )
-                    elif result3.verdict == Verdict.NO:
-                        assert result3.reason is not None
-                        exclusions.append(result3.reason)
-                        continue
+                result3 = recheck(output)
+                if result3.verdict == Verdict.YES:
+                    return LoopOutcome(
+                        status="accepted",
+                        output=output,
+                        exclusions=exclusions,
+                        rounds=round_num,
+                        contradiction=_detect_contradictions(exclusions) or None,
+                    )
+                elif result3.verdict == Verdict.NO:
+                    assert result3.reason is not None
+                    exclusions.append(result3.reason)
+                    continue
 
-            if is_failed is not None and is_failed(dep):
+            if is_failed is not None and is_failed(dep) and recheck is not None:
                 # Dependency failed — recheck without it
-                if recheck is not None:
-                    result4 = recheck(output)
-                    if result4.verdict == Verdict.YES:
-                        return LoopOutcome(
-                            status="accepted",
-                            output=output,
-                            exclusions=exclusions,
-                            rounds=round_num,
-                            contradiction=_detect_contradictions(exclusions) or None,
-                        )
-                    elif result4.verdict == Verdict.NO:
-                        assert result4.reason is not None
-                        exclusions.append(result4.reason)
-                        continue
+                result4 = recheck(output)
+                if result4.verdict == Verdict.YES:
+                    return LoopOutcome(
+                        status="accepted",
+                        output=output,
+                        exclusions=exclusions,
+                        rounds=round_num,
+                        contradiction=_detect_contradictions(exclusions) or None,
+                    )
+                elif result4.verdict == Verdict.NO:
+                    assert result4.reason is not None
+                    exclusions.append(result4.reason)
+                    continue
 
             # Dependency unresolved, no resolver supplied — block
             if on_blocked:

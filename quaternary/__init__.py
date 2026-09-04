@@ -1,17 +1,68 @@
 """Quaternary Verdict — four-value evaluation for agentic loops."""
 
-from .core import CheckResult, Verdict, iff, maybe, no, yes
+from .core import (
+    CheckResult,
+    ComputeNeed,
+    EvidenceNeed,
+    Needed,
+    Verdict,
+    iff,
+    maybe,
+    no,
+    yes,
+)
+from .qict import (
+    AuditResult,
+    CandidateDisposition,
+    ControllerAction,
+    ControllerEvent,
+    ControllerEventKind,
+    ControllerState,
+    ControllerStatus,
+    DependencyRecord,
+    EvaluationReceipt,
+    EventReceipt,
+    Lease,
+    LeaseKind,
+    QICTConfig,
+    QICTController,
+    ResolutionOutcome,
+    TransitionReceipt,
+    audit_trace,
+    rank,
+)
 from .runner import LoopOutcome, run
 
 __all__ = [
-    "Verdict",
+    "AuditResult",
+    "CandidateDisposition",
     "CheckResult",
+    "ComputeNeed",
+    "ControllerAction",
+    "ControllerEvent",
+    "ControllerEventKind",
+    "ControllerState",
+    "ControllerStatus",
+    "DependencyRecord",
+    "EvaluationReceipt",
+    "EventReceipt",
+    "EvidenceNeed",
+    "Lease",
+    "LeaseKind",
     "LoopOutcome",
-    "no",
-    "yes",
-    "maybe",
+    "Needed",
+    "QICTConfig",
+    "QICTController",
+    "ResolutionOutcome",
+    "TransitionReceipt",
+    "Verdict",
+    "audit_trace",
     "iff",
+    "maybe",
+    "no",
+    "rank",
     "run",
+    "yes",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
