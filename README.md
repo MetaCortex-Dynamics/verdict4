@@ -14,27 +14,25 @@ The finite-rank controller is specified in [Quaternary Iteration Control for Loo
 
 ## Install
 
-Install directly from GitHub:
+Install the v0.2.0 release from PyPI:
+
+```bash
+pip install verdict4==0.2.0
+```
+
+Or install directly from the v0.2.0 GitHub tag:
 
 ```bash
 pip install git+https://github.com/MetaCortex-Dynamics/verdict4.git@v0.2.0
 ```
 
-Or from source:
+For an editable source install:
 
 ```bash
 git clone https://github.com/MetaCortex-Dynamics/verdict4.git
 cd verdict4
 pip install -e .
 ```
-
-After the GitHub release has published the package to PyPI, install the pinned release with:
-
-```bash
-pip install verdict4==0.2.0
-```
-
-Until that release workflow completes, use the GitHub install above.
 
 ## Quick start
 
